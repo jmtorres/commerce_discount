@@ -14,7 +14,9 @@
 function commerce_discount_commerce_cart_order_refresh($wrapper) {
   $line_items_to_delete = array();
   // Remove all discount references from the order.
-  $wrapper->commerce_discounts->set(array());
+  if ($wrapper->commerce_discounts->count()){
+    $wrapper->commerce_discounts->set(array());
+  }
 
   // Remove discount components from the order total price.
   commerce_discount_remove_discount_components($wrapper->commerce_order_total);
@@ -38,13 +40,16 @@ function commerce_discount_commerce_cart_order_refresh($wrapper) {
     // If the line item is not a discount, delete discount components from its
     // price.
     else {
+      $original_line_item = clone($wrapper_line_item->value());
       // Remove discount components from the line item unit price.
       commerce_discount_remove_discount_components($wrapper_line_item->commerce_unit_price);
 
       // Remove discount components from the line item total price.
       commerce_discount_remove_discount_components($wrapper_line_item->commerce_total);
 
-      $wrapper_line_item->save();
+      if ($original_line_item != $wrapper_line_item->value()){
+        $wrapper_line_item->save();
+      }
     }
   }
   // Delete line items.
